@@ -1,15 +1,6 @@
-calories = []
-cal_set = []
-with open('input.txt', 'r') as f:
-    for line in f:
-        if line != '\n':
-            cal_set.append(int(line.split('\n')[0]))
-        else:
-            calories.append(cal_set)
-            cal_set = []
+from helpers.io import read_input
 
-max_cals = max([sum(cal_set) for cal_set in calories])
-print(max_cals)
+calories = read_input('input_test.txt', dtype='int', sublists_on_newline=True)
 
 top_three = [0, 0, 0]
 for idx, elf_cals in enumerate(calories):
