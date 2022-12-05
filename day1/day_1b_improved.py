@@ -1,6 +1,6 @@
 from helpers.io import read_input
 
-calories = read_input('input_test.txt', dtype='int', sublists_on_newline=True)
+calories = read_input('input_test   .txt', dtype='int', sublists_on_newline=True)
 
 top_three = [0, 0, 0]
 for idx, elf_cals in enumerate(calories):
