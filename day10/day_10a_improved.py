@@ -47,21 +47,22 @@ cmd_cycles = {'noop': 1, 'addx': 2}
 X = 1
 signal_strengths = []
 cycle = 1
-stack = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 while cmds:
     cmd = cmds.pop()
     op = cmd[0]
     if op == 'addx':
         val = cmd[1]
-        stack[1] += val
+    else:
+        val = 0
     num_cycles = cmd_cycles[op]
     for cycle_step in range(num_cycles):
         signal_strength = cycle * X
         signal_strengths.append(signal_strength)
         print(f'cycle {cycle:<5} {strcmd(cmd):10}, signal strength: {signal_strength:<5}, start_X: {X:<3}', end="")
-        X += stack[0]
-        stack = shift_left(stack)
+        if cycle_step == num_cycles - 1:
+            # Last cycle for operation
+            X += val
         print(f', end_X: {X:<3}')
         cycle += 1
 
@@ -76,4 +77,5 @@ print()
 print(sum_signal_strengths)
 
 print('finished')
+
 # Antwoord: 14040
