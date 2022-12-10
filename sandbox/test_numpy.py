@@ -1,6 +1,7 @@
 import numpy as np
 
 ## Numpy Array vs. Python List
+# LIST LIST
 a = [1, 2, 3]
 b = [q * 2 for q in a]
 print(a)
@@ -19,6 +20,7 @@ a = np.array([1, 2, 3])
 b = np.array([4, 5, 6])
 a + b
 print(a)
+# END LISTS
 
 ## 1. Vectors, the 1D Arrays
 a = np.array([1., 2., 3.])
