@@ -1,0 +1,6 @@
+/Users/basvanderworp/PycharmProjects/aoc_2022/venv/bin/python /Users/basvanderworp/PycharmProjects/aoc_2022/day12/day_12a.py 
+         0: (1, 0)
+           1: (2, 0)
+             2: (3, 0)
+               3: (4, 0)
+finished

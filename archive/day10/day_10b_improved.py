@@ -1,6 +1,6 @@
 """
 Advent of Code 2022
-Day 9
+Day 10
 
 """
 from helpers.io import read_input, split_list
@@ -36,7 +36,7 @@ def strcmd(cmd):
 
 
 test = False
-# test = True
+#test = True
 input_file = 'input.txt' if not test else 'input_test.txt'
 file_lines = read_input(input_file)
 cmds_reverse = read_cmds(file_lines)
@@ -47,35 +47,44 @@ cmd_cycles = {'noop': 1, 'addx': 2}
 X = 1
 signal_strengths = []
 cycle = 1
+# stack, totally not needed (but not removed yet)
+stack = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+crt = []
+crt_row = 0
+sprite_pos = 0
+row_length = 40
 
 while cmds:
     cmd = cmds.pop()
     op = cmd[0]
     if op == 'addx':
         val = cmd[1]
-    else:
-        val = 0
+        stack[1] += val
     num_cycles = cmd_cycles[op]
     for cycle_step in range(num_cycles):
+        crt_row = (cycle-1) // row_length
+        if len(crt) < crt_row + 1:
+            crt.append([])
+            sprite_pos = 0
+        if abs(X - sprite_pos) < 2:
+            #
+            crt[crt_row].append('#')
+        else:
+            crt[crt_row].append('.')
         signal_strength = cycle * X
         signal_strengths.append(signal_strength)
         print(f'cycle {cycle:<5} {strcmd(cmd):10}, signal strength: {signal_strength:<5}, start_X: {X:<3}', end="")
-        if cycle_step == num_cycles - 1:
-            # Last cycle for operation
-            X += val
-        print(f', end_X: {X:<3}')
+        X += stack[0]
+        stack = shift_left(stack)
+        print(f", end_X: {X:<3}, {''.join(crt[crt_row])}")
         cycle += 1
+        sprite_pos += 1
 
-sum_signal_strengths = 0
-selected_cycles = [20, 60, 100, 140, 180, 220]
-selected_cycles_shifted = [idx - 1 for idx in selected_cycles]
-
-for selected_cycle in selected_cycles_shifted:
-    sum_signal_strengths += signal_strengths[selected_cycle]
-    # print(signal_strengths[selected_cycle])
 print()
-print(sum_signal_strengths)
+for row in crt:
+    print(''.join(row))
 
 print('finished')
 
-# Antwoord: 14040
+
+# Geantwoord: ZGCJZJFL
