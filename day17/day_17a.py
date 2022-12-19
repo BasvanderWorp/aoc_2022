@@ -246,7 +246,7 @@ if plot:
     raster.display()
 
 last_rock = 2022
-last_rock = 1000000000000
+# last_rock = 1000000000000
 while rock_number < last_rock or not raster.rocks_stopped:
     next_move = moves[next_move_index]
     next_move_index = (next_move_index + 1) % len(moves)

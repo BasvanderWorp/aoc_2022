@@ -12,7 +12,6 @@ debug = False
 def get_ord(char):
     return ord(char) - ord('a')
 
-
 def read_map(lines):
     map_tmp = []
     for line in lines:
