@@ -29,7 +29,7 @@ def build_raster(lines, pouring_coord):
             else:
                 raster[coord[0], coord[1]] = '#'
                 prev_coord = coord
-    return raster
+    return raster, get_abyss(raster) + 2
 
 def get_abyss(raster):
     abyss = 0
@@ -37,28 +37,32 @@ def get_abyss(raster):
         abyss = max(abyss, coord[1])
     return abyss
 
-def drop(raster, coord):
+def drop(raster, coord, bottom):
     next_pos = (coord[0], coord[1] + 1)
-    if next_pos not in raster.keys():
-        return next_pos
+    if next_pos[1] == bottom:
+        raster[coord] = 'o'
+        return coord
     else:
-        next_pos = (coord[0] - 1, coord[1] + 1)
         if next_pos not in raster.keys():
             return next_pos
         else:
-            next_pos = (coord[0] + 1, coord[1] + 1)
+            next_pos = (coord[0] - 1, coord[1] + 1)
             if next_pos not in raster.keys():
                 return next_pos
             else:
-                raster[coord] = 'o'
-                return coord
+                next_pos = (coord[0] + 1, coord[1] + 1)
+                if next_pos not in raster.keys():
+                    return next_pos
+                else:
+                    raster[coord] = 'o'
+                    return coord
 
 def drop_sand(raster, abyss, pour_coord):
     # criterium: if sand drops below lowest line it drops in the abyss
     #   in that case, stop. That last unit of sand does not count, and raster is not updated
     sand_unit = pour_coord
-    while sand_unit[1] < abyss:
-        new_pos = drop(raster, sand_unit)
+    while pour_coord not in raster.keys():
+        new_pos = drop(raster, sand_unit, bottom)
         if sand_unit == new_pos:
             sand_unit = pour_coord
         else:
@@ -74,9 +78,7 @@ test = False
 input_file = 'input.txt' if not test else 'input_test.txt'
 file_lines = read_input(input_file)
 sand_pour_coord = (500, 0)
-raster = build_raster(file_lines, sand_pour_coord)
-abyss = get_abyss(raster)
-# display_raster(raster)
-raster = drop_sand(raster, abyss, sand_pour_coord)
+raster, bottom = build_raster(file_lines, sand_pour_coord)
+raster = drop_sand(raster, bottom, sand_pour_coord)
 sandunits = sum([1 for x in raster.values() if x == 'o'])
 print(sandunits)
