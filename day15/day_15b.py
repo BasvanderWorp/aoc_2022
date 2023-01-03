@@ -1,71 +1,12 @@
 """
 Advent of Code 2022
 Day 15
-
-b:
-hmm 4 miljoen bij 4 miljoen gaat niet lukken om allemaal af te lopen, iets slimmers bedenken
-
-er zijn niet zoveel sensors (nl maar 38), dus beter per sensor nagaan en het gebied verkleinen
-maar hoe kan dat slim.
-Hmm misschien alleen de omtrek bijhouden en een functie om te bepalen of het binnen of buiten het gebied ligt...
-maar dan moet je als nog alle 4mln^2 punten nagaan, niet handig
-
-nu kan ik het wel als een numpy matrix bekijken, misschien is dat sneller rekenen?
-even testen:
-n1 = np.ones(4000000, 4000000)
-n1 + 1
-print(n1[3,3])
-
-oei dat lukt al niet voor float, int.
-en voor bool duurt het minuten voor het uberhaupt aanmaken... gaat um niet worden...
-
-n1 = np.ones([4000000, 4000000], bool)
-Process finished with exit code 137 (interrupted by signal 9: SIGKILL)
-
-nope gaat um niet worden
-DUS WEER geen numpy array
-
-===
-ah wacht ander idee, het zijn allemaal cirkels, kan ik dit niet wiskundig oplossen?
-dus 38 cirkels met een middelpunt en een straal
-en daarvan het enige punt zoeken die niet in die cirkel valt!
-ik moet toch alle punten langs? 4 miljoen in het kwadraat!
-als ik maar een supersnelle manier van rekenen heb
-dus:
-- for punt in 4x4 miljoen punten:
-    - for cirkel in cirkels
-        als punt in cirkel: sluit punt uit, break
-    voeg punt toe aan geldige punten
-
-eerst ff testen hoe lang het duurt om door een lijst van 4x4 miljoen te lopen, uberhaupt zonder wat te doen !!!
-ow nee zelfs dat duur te lang, gaat ook niet werken!!!
-
-
-===
-dan maar met polygonen / vormen werken? dus eerst polygoon van 4mln bij 4 mln,
-lijst van areas_avail(square4x4mln)
-- cirkel 1: polygoon minus cirkel
-- cirkel 2: polygoon minus cirkel, minus cirkel
-- shapely?
-nee geen shapely, zelf bouwen
-
-- cirkel 1: sla buiten coordinaten op
-- cirkel 2: sla buiten coordinaten op
-    - merge met cirkel 1
-        - als ze overlappen dan een nieuwe shape
-        - anders 2 shapes
-- cirkel 38: klaar
-- resultaat:
-    - als het goed is 1 grote shape
-    - maar nu moet ik het ene punt vinden dat daar niet binnenvalt
-    - misschien mergen met de vierkant 4x4 miljoen?
-
-
 """
 from helpers.io import read_input
-import numpy as np
-import copy
-import sys
+from shapely.geometry import Polygon
+from shapely.ops import unary_union
+import matplotlib.pyplot as plt
+import shapely.geometry.multipolygon
 
 def read_sensors(lines: list):
     sensors = {}
@@ -79,13 +20,20 @@ def read_sensors(lines: list):
                         int(beacon_data.split(',')[1].split('=')[1]))
         beacons.append(beacon_coord)
         # sensors[(int(sensor_x), int(sensor_y))] = (int(beacon_x), int(beacon_y))
-        sensors[sensor_coord] = man_dist(sensor_coord, beacon_coord)
+        dist = man_dist(sensor_coord, beacon_coord)
+        left_coord = (sensor_coord[0] - dist, sensor_coord[1])
+        right_coord = (sensor_coord[0] + dist, sensor_coord[1])
+        upper_coord = (sensor_coord[0], sensor_coord[1] - dist)
+        lower_coord = (sensor_coord[0], sensor_coord[1] + dist)
+        sensors[sensor_coord] = Polygon([left_coord, upper_coord, right_coord, lower_coord])
     return sensors, beacons
+
 
 def man_dist(coord1, coord2):
     dist_x = abs(coord1[0] - coord2[0])
     dist_y = abs(coord1[1] - coord2[1])
     return dist_x + dist_y
+
 
 def get_x_bounds(sensors):
     x_min = list(sensors.keys())[0][0]
@@ -95,33 +43,16 @@ def get_x_bounds(sensors):
         x_max = max(x_max, sensor[0] + sensor_range)
     return x_min, x_max
 
-def get_num_occupied_pos(sensors, beacons, x_bounds, y):
-    num_occ_pos = 0
-    prev_perc = -1
-    range_from = 0
-    range_to = 4000000
-    for x in range(range_from, range_to + 1):
-        perc = round((x - range_from) / (range_to - range_from) * 100)
-        if perc % 5 == 0:
-            if perc != prev_perc:
-                print(f'{perc}%')
-                prev_perc = perc
 
-        x_checked = False
-        for sensor_coord, sensor_range in sensors.items():
-            if man_dist((x,y), sensor_coord) <= sensor_range and not x_checked and (x,y) not in beacons:
-                num_occ_pos += 1
-                # print(x, y)
-                x_checked = True
-        if False:
-            if (x,y) in beacons:
-                print('B', end="")
-            elif x_checked:
-                print('#', end="")
-            else:
-                print('.', end="")
-    print()
-    return num_occ_pos
+def merge_areas(sensors):
+    total_area = None
+    for sensor_coord, sensor_area in sensors.items():
+        print(f"Adding sensor's {sensor_coord} area ...")
+        if not total_area:
+            total_area = sensor_area
+        else:
+            total_area = unary_union([total_area, sensor_area])
+    return total_area
 
 # ======================================
 # MAIN
@@ -134,11 +65,36 @@ file_lines = read_input(input_file)
 print('Start reading sensors and beacons')
 sensors, beacons = read_sensors(file_lines)
 print('Sensors and beacons read')
-x_bounds = get_x_bounds(sensors)
-print(f"x bounds: {x_bounds}, number of xes: {x_bounds[1]-x_bounds[0]}")
 
-num = get_num_occupied_pos(sensors, beacons, x_bounds, 2000000)
-print()
-print(num)
+if False:
+    for p in sensors.values():
+        plt.plot(*p.exterior.xy)
+    plt.show()
 
+total_area = merge_areas(sensors)
 print()
+
+plot_result = False
+if isinstance(total_area, shapely.geometry.multipolygon.MultiPolygon):
+    for poly1 in total_area.geoms:
+        if plot_result:
+            plt.plot(*poly1.exterior.xy, color='green')
+        for poly_int in poly1.interiors:
+            if plot_result:
+                plt.plot(*poly_int.xy, color='red')
+else:
+    if plot_result:
+        plt.plot(*total_area.exterior.xy, color='green')
+    for poly_int in total_area.interiors:
+        if plot_result:
+            plt.plot(*poly_int.xy, color='red')
+if plot_result:
+    plt.show()
+
+# oke ik hou uiteindelijk maar 1 interior over !!
+# POLYGON ((2843632 2948437, 2843634 2948437, 2843634 2948439, 2843632 2948439, 2843632 2948437))
+# hieruit kan ik handmatig het overgebleven punt uit afleiden en daarna de 'tuning frequency' berekenen
+# 2843633*4000000 + 2948438
+# 11374534948438
+# HAHAHA verrek het is nog goed ook, LOL
+print('Done!')
