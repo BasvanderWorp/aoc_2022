@@ -7,7 +7,7 @@ from helpers.io import read_input
 
 test = False
 # test = True
-input_file = 'input.txt' if not test else 'input_test2.txt'
+input_file = 'day09/input.txt' if not test else 'day09/input_test2.txt'
 file_lines = read_input(input_file)
 
 sgn = lambda x: (x > 0) - (x < 0)
